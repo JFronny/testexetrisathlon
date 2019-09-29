@@ -83,32 +83,34 @@ namespace testexetrisathlon
                         intro.PlayLooping();
                         SetCursorPosition(0, 1);
                         Write(
-                            "          ▀▀▀██████▄▄▄\r\n" +
-                            "                 ▀▀▀████▄\r\n" +
-                            "          ▄███████▀   ▀███▄\r\n" +
-                            "        ▄███████▀       ▀███▄\r\n" +
-                            "      ▄████████           ███▄\r\n" +
-                            "     ██████████▄           ███▌\r\n" +
-                            "     ▀█████▀ ▀███▄         ▐███\r\n" +
-                            "       ▀█▀     ▀███▄       ▐███\r\n" +
-                            "                 ▀███▄     ███▌\r\n" +
-                            "    ▄██▄           ▀███▄  ▐███\r\n" +
-                            "  ▄██████▄           ▀███▄███\r\n" +
-                            " █████▀▀████▄▄        ▄█████\r\n" +
-                            " ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
-                            "  ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
+                            "             ▀▀▀██████▄▄▄\r\n" +
+                            "                    ▀▀▀████▄\r\n" +
+                            "             ▄███████▀   ▀███▄\r\n" +
+                            "           ▄███████▀       ▀███▄\r\n" +
+                            "         ▄████████           ███▄\r\n" +
+                            "        ██████████▄           ███▌\r\n" +
+                            "        ▀█████▀ ▀███▄         ▐███\r\n" +
+                            "          ▀█▀     ▀███▄       ▐███\r\n" +
+                            "                    ▀███▄     ███▌\r\n" +
+                            "       ▄██▄           ▀███▄  ▐███\r\n" +
+                            "     ▄██████▄           ▀███▄███\r\n" +
+                            "    █████▀▀████▄▄        ▄█████\r\n" +
+                            "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
+                            "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
 
-                            "testexetrisathlon v." + assembly.GetName().Version.ToString());
-                        SetCursorPosition(7, 18);
+                            "   testexetrisathlon v." + assembly.GetName().Version.ToString());
+                        SetCursorPosition(10, 18);
                         WriteLine("Controls: Space");
-                        SetCursorPosition(8, 19);
+                        SetCursorPosition(11, 19);
                         WriteLine("Up, Down, Right");
-                        SetCursorPosition(8, 20);
+                        SetCursorPosition(11, 20);
                         WriteLine("Left");
-                        SetCursorPosition(7, 22);
+                        SetCursorPosition(10, 22);
                         WriteLine("Press s to start");
-                        SetCursorPosition(7, 23);
+                        SetCursorPosition(10, 23);
                         WriteLine("Press x to exit");
+                        SetCursorPosition(0, 26);
+                        WriteLine("Icon made by Freepik from www.flaticon.com");
                         string tmp = ReadKey(true).KeyChar.ToString().ToLower();
                         switch (tmp)
                         {
