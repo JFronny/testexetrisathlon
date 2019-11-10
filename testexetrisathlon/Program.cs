@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Media;
 using System.Reflection;
 using static System.Console;
+using System.Runtime.InteropServices;
 
 //┌─┐
 //│ │
@@ -28,6 +29,11 @@ namespace testexetrisathlon
 {
     class Program
     {
+        [DllImport("winmm.dll")]
+        static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
         public static string sqr = "■";
         public static int[,] grid = new int[23, 10];
         public static int[,] droppedtetrominoeLocationGrid = new int[23, 10];
@@ -69,8 +75,31 @@ namespace testexetrisathlon
             Clear();
         }
         enum GameState { exit, menu, game, gameOver }
+        void DrawSymbol()
+        {
+            SetCursorPosition(0, 1);
+            Write(
+                "             ▀▀▀██████▄▄▄\r\n" +
+                "                    ▀▀▀████▄\r\n" +
+                "             ▄███████▀   ▀███▄\r\n" +
+                "           ▄███████▀       ▀███▄\r\n" +
+                "         ▄████████           ███▄\r\n" +
+                "        ██████████▄           ███▌\r\n" +
+                "        ▀█████▀ ▀███▄         ▐███\r\n" +
+                "          ▀█▀     ▀███▄       ▐███\r\n" +
+                "                    ▀███▄     ███▌\r\n" +
+                "       ▄██▄           ▀███▄  ▐███\r\n" +
+                "     ▄██████▄           ▀███▄███\r\n" +
+                "    █████▀▀████▄▄        ▄█████\r\n" +
+                "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
+                "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
+
+                "   testexetrisathlon v." + assembly.GetName().Version.ToString());
+        }
         void MainN(SoundPlayer intro, SoundPlayer inGame, SoundPlayer gameOver)
         {
+            int NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
+            waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
             bool playing = true;
             GameState state = GameState.menu;
             try
@@ -83,36 +112,21 @@ namespace testexetrisathlon
                             Clear();
                             gameOver.Stop();
                             intro.PlayLooping();
-                            SetCursorPosition(0, 1);
-                            Write(
-                                "             ▀▀▀██████▄▄▄\r\n" +
-                                "                    ▀▀▀████▄\r\n" +
-                                "             ▄███████▀   ▀███▄\r\n" +
-                                "           ▄███████▀       ▀███▄\r\n" +
-                                "         ▄████████           ███▄\r\n" +
-                                "        ██████████▄           ███▌\r\n" +
-                                "        ▀█████▀ ▀███▄         ▐███\r\n" +
-                                "          ▀█▀     ▀███▄       ▐███\r\n" +
-                                "                    ▀███▄     ███▌\r\n" +
-                                "       ▄██▄           ▀███▄  ▐███\r\n" +
-                                "     ▄██████▄           ▀███▄███\r\n" +
-                                "    █████▀▀████▄▄        ▄█████\r\n" +
-                                "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
-                                "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
-
-                                "   testexetrisathlon v." + assembly.GetName().Version.ToString());
+                            DrawSymbol();
                             SetCursorPosition(10, 18);
-                            WriteLine("Controls: Space");
+                            Write("Controls: Space");
                             SetCursorPosition(11, 19);
-                            WriteLine("Up, Down, Right");
+                            Write("Up, Down, Right");
                             SetCursorPosition(11, 20);
-                            WriteLine("Left");
+                            Write("Left");
                             SetCursorPosition(10, 22);
-                            WriteLine("Press s to start");
+                            Write("Press s to start");
                             SetCursorPosition(10, 23);
-                            WriteLine("Press x to exit");
+                            Write("Press x to exit");
+                            SetCursorPosition(10, 24);
+                            Write("Press v for settings");
                             SetCursorPosition(0, 26);
-                            WriteLine("Icon made by Freepik from www.flaticon.com");
+                            Write("Icon made by Freepik from www.flaticon.com");
                             string tmp = ReadKey(true).KeyChar.ToString().ToLower();
                             switch (tmp)
                             {
@@ -124,6 +138,30 @@ namespace testexetrisathlon
                                     break;
                                 case "x":
                                     state = GameState.exit;
+                                    break;
+                                case "v":
+                                    Clear();
+                                    DrawSymbol();
+                                    bool barActive = true;
+                                    while (barActive)
+                                    {
+                                        SetCursorPosition(3, 20);
+                                        Write("Volume: " + new string('=', SettingsMan.Volume * 2) + "[" + SettingsMan.Volume.ToString("00") + "]" + new string('=', 20 - (SettingsMan.Volume * 2)));
+                                        switch (ReadKey().Key)
+                                        {
+                                            case ConsoleKey.LeftArrow:
+                                                SettingsMan.Volume--;
+                                                break;
+                                            case ConsoleKey.RightArrow:
+                                                SettingsMan.Volume++;
+                                                break;
+                                            case ConsoleKey.Enter:
+                                                barActive = false;
+                                                break;
+                                        }
+                                        NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
+                                        waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
+                                    }
                                     break;
                             }
                             break;
