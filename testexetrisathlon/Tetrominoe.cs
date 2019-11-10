@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using static System.Console;
 #pragma warning disable IDE1006
 namespace testexetrisathlon
@@ -32,11 +33,11 @@ namespace testexetrisathlon
         public Tetrominoe()
         {
             shape = tetrominoes[Program.rnd.Next(0, tetrominoes.Count)];
-            for (int i = 23; i < 33; ++i)
+            for (int i = 0; i < 10; i++)
             {
-                for (int j = 3; j < 10; j++)
+                for (int j = 0; j < 7; j++)
                 {
-                    SetCursorPosition(i, j);
+                    SetCursorPosition(i + 23, j + 3);
                     Write(" ");
                 }
             }
@@ -47,7 +48,7 @@ namespace testexetrisathlon
                 {
                     if (shape[i, j] == 1)
                     {
-                        SetCursorPosition(((10 - shape.GetLength(1)) / 2 + j) * 2 + 20, i + 5);
+                        SetCursorPosition(30 - shape.GetLength(1) + (2 * j), i + 5);
                         Write(Program.sqr);
                     }
                 }
@@ -61,7 +62,7 @@ namespace testexetrisathlon
                 {
                     if (shape[i, j] == 1)
                     {
-                        location.Add(new int[] { i, (10 - shape.GetLength(1)) / 2 + j });
+                        location.Add(new int[] { i, 5 - (shape.GetLength(1) / 2) + j });
                     }
                 }
             }
@@ -69,21 +70,15 @@ namespace testexetrisathlon
         }
         public void Drop()
         {
-            if (isSomethingBelow())
+            if (isSomethingBelow)
             {
-                for (int i = 0; i < 4; i++)
-                {
-                    Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] = 1;
-                }
+                location.ForEach(s => Program.droppedtetrominoeLocationGrid[s[0], s[1]] = 1);
                 Program.isDropped = true;
                 Beep(800, 200);
             }
             else
             {
-                for (int numCount = 0; numCount < 4; numCount++)
-                {
-                    location[numCount][0] += 1;
-                }
+                location.ForEach(s => s[0]++);
                 Update();
             }
         }
@@ -96,77 +91,33 @@ namespace testexetrisathlon
                 {
                     if (shape[i, j] == 1)
                     {
-                        templocation.Add(new int[] { i, (10 - shape.GetLength(1)) / 2 + j });
+                        templocation.Add(new int[] { i, ((10 - shape.GetLength(1)) / 2) + j });
                     }
                 }
             }
-            if (shape == tetrominoes[0])
-            {
-                for (int i = 0; i < location.Count; i++)
-                {
-                    templocation[i] = TransformMatrix(location[i], location[2]);
-                }
-            }
-            else if (shape == tetrominoes[3])
-            {
-                for (int i = 0; i < location.Count; i++)
-                {
-                    templocation[i] = TransformMatrix(location[i], location[3]);
-                }
-            }
-            else if (shape == tetrominoes[1])
+            if (shape == tetrominoes[1])
                 return;
-            else
-            {
-                for (int i = 0; i < location.Count; i++)
-                {
-                    templocation[i] = TransformMatrix(location[i], location[2]);
-                }
-            }
+            for (int i = 0; i < location.Count; i++)
+                templocation[i] = TransformMatrix(location[i], location[(shape == tetrominoes[3]) ? 3 : 2]);
             for (int count = 0; isOverlayLeft(templocation) != false | isOverlayRight(templocation) != false | isOverlayBelow(templocation) != false; count++)
             {
                 if (isOverlayLeft(templocation) == true)
-                {
                     for (int i = 0; i < location.Count; i++)
-                    {
-                        templocation[i][1] += 1;
-                    }
-                }
+                        templocation[i][1]++;
                 if (isOverlayRight(templocation) == true)
-                {
                     for (int i = 0; i < location.Count; i++)
-                    {
-                        templocation[i][1] -= 1;
-                    }
-                }
+                        templocation[i][1]--;
                 if (isOverlayBelow(templocation) == true)
-                {
                     for (int i = 0; i < location.Count; i++)
-                    {
-                        templocation[i][0] -= 1;
-                    }
-                }
+                        templocation[i][0]--;
                 if (count == 3)
-                {
                     return;
-                }
             }
             location = templocation;
         }
-        public bool notFalse(bool? inp) => (inp ?? true);
-        public int[] TransformMatrix(int[] coord, int[] axis) => new int[] { axis[0] - axis[1] + coord[1], axis[0] + axis[1] - coord[0] };
-        public bool isSomethingBelow()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (location[i][0] + 1 >= 23)
-                    return true;
-                if (location[i][0] + 1 < 23 & Program.droppedtetrominoeLocationGrid[location[i][0] + 1, location[i][1]] == 1)
-                    return true;
-            }
-            return false;
-        }
-        public bool? isOverlayBelow(List<int[]> location)
+        public static int[] TransformMatrix(int[] coord, int[] axis) => new int[] { axis[0] - axis[1] + coord[1], axis[0] + axis[1] - coord[0] };
+        public bool isSomethingBelow => location.Where(s => s[0] + 1 >= 23 || s[0] + 1 < 23 & Program.droppedtetrominoeLocationGrid[s[0] + 1, s[1]] == 1).Count() > 0;
+        public static bool? isOverlayBelow(List<int[]> location)
         {
             List<int> ycoords = new List<int>();
             for (int i = 0; i < 4; i++)
@@ -177,42 +128,17 @@ namespace testexetrisathlon
                 if (location[i][0] < 0 | location[i][1] < 0 | location[i][1] > 9)
                     return null;
             }
-            for (int i = 0; i < 4; i++)
-            {
-                if (ycoords.Max() - ycoords.Min() == 3)
-                {
-                    if ((ycoords.Max() == location[i][0] | ycoords.Max() - 1 == location[i][0]) & (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if ((ycoords.Max() == location[i][0]) & (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return location.Where(s => (ycoords.Max() - ycoords.Min() == 3) ?
+            ((ycoords.Max() == s[0] | ycoords.Max() - 1 == s[0]) & (Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1)) :
+            ((ycoords.Max() == s[0]) & (Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1))).Count() > 0;
         }
-        public bool isSomethingLeft()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (location[i][1] == 0)
-                    return true;
-                else if (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1] - 1] == 1)
-                    return true;
-            }
-            return false;
-        }
-        public bool? isOverlayLeft(List<int[]> location)
+        public bool isSomethingLeft() => location.Where(s => s[1] == 0 || Program.droppedtetrominoeLocationGrid[s[0], s[1] - 1] == 1).Count() > 0;
+        public static bool? isOverlayLeft(List<int[]> location)
         {
             List<int> xcoords = new List<int>();
+            xcoords.AddRange(location.Select(s => s[1]));
             for (int i = 0; i < 4; i++)
             {
-                xcoords.Add(location[i][1]);
                 if (location[i][1] < 0)
                     return true;
                 if (location[i][1] > 9)
@@ -220,48 +146,17 @@ namespace testexetrisathlon
                 if (location[i][0] >= 23 | location[i][0] < 0)
                     return null;
             }
-            for (int i = 0; i < 4; i++)
-            {
-                if (xcoords.Max() - xcoords.Min() == 3)
-                {
-                    if (xcoords.Min() == location[i][1] | xcoords.Min() + 1 == location[i][1])
-                    {
-                        if (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                else
-                {
-                    if (xcoords.Min() == location[i][1])
-                    {
-                        if (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return location.Where(s => (xcoords.Max() - xcoords.Min() == 3) ?
+            (xcoords.Min() == s[1] | xcoords.Min() + 1 == s[1] && Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1) :
+            (xcoords.Min() == s[1] && Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1)).Count() > 0;
         }
-        public bool isSomethingRight()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (location[i][1] == 9)
-                    return true;
-                else if (Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1] + 1] == 1)
-                    return true;
-            }
-            return false;
-        }
-        public bool? isOverlayRight(List<int[]> location)
+        public bool isSomethingRight() => location.Where(s => s[1] == 9 || Program.droppedtetrominoeLocationGrid[s[0], s[1] + 1] == 1).Count() > 0;
+        public static bool? isOverlayRight(List<int[]> location)
         {
             List<int> xcoords = new List<int>();
+            xcoords.AddRange(location.Select(s => s[1]));
             for (int i = 0; i < 4; i++)
             {
-                xcoords.Add(location[i][1]);
                 if (location[i][1] > 9)
                     return true;
                 if (location[i][1] < 0)
@@ -269,24 +164,9 @@ namespace testexetrisathlon
                 if (location[i][0] >= 23 | location[i][0] < 0)
                     return null;
             }
-            for (int i = 0; i < 4; i++)
-            {
-                if (xcoords.Max() - xcoords.Min() == 3)
-                {
-                    if ((xcoords.Max() == location[i][1] | xcoords.Max() - 1 == location[i][1]) & Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (xcoords.Max() == location[i][1] & Program.droppedtetrominoeLocationGrid[location[i][0], location[i][1]] == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return location.Where(s => (xcoords.Max() - xcoords.Min() == 3) ?
+            ((xcoords.Max() == s[1] | xcoords.Max() - 1 == s[1]) & Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1) :
+            (xcoords.Max() == s[1] & Program.droppedtetrominoeLocationGrid[s[0], s[1]] == 1)).Count() > 0;
         }
         public void Update()
         {
@@ -297,10 +177,7 @@ namespace testexetrisathlon
                     Program.grid[i, j] = 0;
                 }
             }
-            for (int i = 0; i < 4; i++)
-            {
-                Program.grid[location[i][0], location[i][1]] = 1;
-            }
+            location.ForEach(s => Program.grid[s[0], s[1]] = 1);
             Program.Draw();
         }
     }

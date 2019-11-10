@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Diagnostics;
 using System.Media;
-using static System.Console;
 using System.Reflection;
+using static System.Console;
 
 //┌─┐
 //│ │
@@ -73,112 +73,121 @@ namespace testexetrisathlon
         {
             bool playing = true;
             GameState state = GameState.menu;
-            while (playing)
+            try
             {
-                switch (state)
+                while (playing)
                 {
-                    case GameState.menu:
-                        Clear();
-                        gameOver.Stop();
-                        intro.PlayLooping();
-                        SetCursorPosition(0, 1);
-                        Write(
-                            "             ▀▀▀██████▄▄▄\r\n" +
-                            "                    ▀▀▀████▄\r\n" +
-                            "             ▄███████▀   ▀███▄\r\n" +
-                            "           ▄███████▀       ▀███▄\r\n" +
-                            "         ▄████████           ███▄\r\n" +
-                            "        ██████████▄           ███▌\r\n" +
-                            "        ▀█████▀ ▀███▄         ▐███\r\n" +
-                            "          ▀█▀     ▀███▄       ▐███\r\n" +
-                            "                    ▀███▄     ███▌\r\n" +
-                            "       ▄██▄           ▀███▄  ▐███\r\n" +
-                            "     ▄██████▄           ▀███▄███\r\n" +
-                            "    █████▀▀████▄▄        ▄█████\r\n" +
-                            "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
-                            "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
+                    switch (state)
+                    {
+                        case GameState.menu:
+                            Clear();
+                            gameOver.Stop();
+                            intro.PlayLooping();
+                            SetCursorPosition(0, 1);
+                            Write(
+                                "             ▀▀▀██████▄▄▄\r\n" +
+                                "                    ▀▀▀████▄\r\n" +
+                                "             ▄███████▀   ▀███▄\r\n" +
+                                "           ▄███████▀       ▀███▄\r\n" +
+                                "         ▄████████           ███▄\r\n" +
+                                "        ██████████▄           ███▌\r\n" +
+                                "        ▀█████▀ ▀███▄         ▐███\r\n" +
+                                "          ▀█▀     ▀███▄       ▐███\r\n" +
+                                "                    ▀███▄     ███▌\r\n" +
+                                "       ▄██▄           ▀███▄  ▐███\r\n" +
+                                "     ▄██████▄           ▀███▄███\r\n" +
+                                "    █████▀▀████▄▄        ▄█████\r\n" +
+                                "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
+                                "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
 
-                            "   testexetrisathlon v." + assembly.GetName().Version.ToString());
-                        SetCursorPosition(10, 18);
-                        WriteLine("Controls: Space");
-                        SetCursorPosition(11, 19);
-                        WriteLine("Up, Down, Right");
-                        SetCursorPosition(11, 20);
-                        WriteLine("Left");
-                        SetCursorPosition(10, 22);
-                        WriteLine("Press s to start");
-                        SetCursorPosition(10, 23);
-                        WriteLine("Press x to exit");
-                        SetCursorPosition(0, 26);
-                        WriteLine("Icon made by Freepik from www.flaticon.com");
-                        string tmp = ReadKey(true).KeyChar.ToString().ToLower();
-                        switch (tmp)
-                        {
-                            case "s":
-                                intro.Stop();
-                                state = GameState.game;
+                                "   testexetrisathlon v." + assembly.GetName().Version.ToString());
+                            SetCursorPosition(10, 18);
+                            WriteLine("Controls: Space");
+                            SetCursorPosition(11, 19);
+                            WriteLine("Up, Down, Right");
+                            SetCursorPosition(11, 20);
+                            WriteLine("Left");
+                            SetCursorPosition(10, 22);
+                            WriteLine("Press s to start");
+                            SetCursorPosition(10, 23);
+                            WriteLine("Press x to exit");
+                            SetCursorPosition(0, 26);
+                            WriteLine("Icon made by Freepik from www.flaticon.com");
+                            string tmp = ReadKey(true).KeyChar.ToString().ToLower();
+                            switch (tmp)
+                            {
+                                case "s":
+                                    intro.Stop();
+                                    state = GameState.game;
+                                    Clear();
+                                    DrawBorder();
+                                    break;
+                                case "x":
+                                    state = GameState.exit;
+                                    break;
+                            }
+                            break;
+                        case GameState.game:
+                            inGame.PlayLooping();
+                            dropTimer.Start();
+                            SetCursorPosition(25, 0);
+                            WriteLine("Level " + level);
+                            SetCursorPosition(25, 1);
+                            WriteLine("Score " + score);
+                            SetCursorPosition(25, 2);
+                            WriteLine("LinesCleared " + linesCleared);
+                            nexttet = new Tetrominoe();
+                            tet = nexttet;
+                            tet.Spawn();
+                            nexttet = new Tetrominoe();
+                            Update();
+                            inGame.Stop();
+                            state = GameState.gameOver;
+                            break;
+                        case GameState.gameOver:
+                            gameOver.PlayLooping();
+                            string input = "";
+                            while ((input != "y") && (input != "n"))
+                            {
                                 Clear();
                                 DrawBorder();
-                                break;
-                            case "x":
-                                state = GameState.exit;
-                                break;
-                        }
-                        break;
-                    case GameState.game:
-                        inGame.PlayLooping();
-                        dropTimer.Start();
-                        SetCursorPosition(25, 0);
-                        WriteLine("Level " + level);
-                        SetCursorPosition(25, 1);
-                        WriteLine("Score " + score);
-                        SetCursorPosition(25, 2);
-                        WriteLine("LinesCleared " + linesCleared);
-                        nexttet = new Tetrominoe();
-                        tet = nexttet;
-                        tet.Spawn();
-                        nexttet = new Tetrominoe();
-                        Update();
-                        inGame.Stop();
-                        state = GameState.gameOver;
-                        break;
-                    case GameState.gameOver:
-                        gameOver.PlayLooping();
-                        string input = "";
-                        while ((input != "y") && (input != "n"))
-                        {
+                                Draw();
+                                SetCursorPosition(0, 0);
+                                WriteLine("┌───────────────────┐");
+                                WriteLine("│     Game Over     │");
+                                WriteLine("│   Replay? (Y/N)   │");
+                                WriteLine("├───────────────────┤");
+                                input = ReadKey().KeyChar.ToString().ToLower();
+                            }
+                            grid = new int[23, 10];
+                            droppedtetrominoeLocationGrid = new int[23, 10];
+                            dropTimer = new Stopwatch();
+                            inputTimer = new Stopwatch();
+                            dropRate = 300;
+                            isDropped = false;
+                            isKeyPressed = false;
+                            linesCleared = 0;
+                            score = 0;
+                            level = 1;
+                            GC.Collect();
                             Clear();
                             DrawBorder();
-                            Draw();
-                            SetCursorPosition(0, 0);
-                            WriteLine("┌───────────────────┐");
-                            WriteLine("│     Game Over     │");
-                            WriteLine("│   Replay? (Y/N)   │");
-                            WriteLine("├───────────────────┤");
-                            input = ReadKey().KeyChar.ToString().ToLower();
-                        }
-                        grid = new int[23, 10];
-                        droppedtetrominoeLocationGrid = new int[23, 10];
-                        dropTimer = new Stopwatch();
-                        inputTimer = new Stopwatch();
-                        dropRate = 300;
-                        isDropped = false;
-                        isKeyPressed = false;
-                        linesCleared = 0;
-                        score = 0;
-                        level = 1;
-                        GC.Collect();
-                        Clear();
-                        DrawBorder();
-                        if (input == "y")
-                            state = GameState.game;
-                        else
-                            state = GameState.menu;
-                        break;
-                    default:
-                        playing = false;
-                        break;
+                            if (input == "y")
+                                state = GameState.game;
+                            else
+                                state = GameState.menu;
+                            break;
+                        default:
+                            playing = false;
+                            break;
+                    }
                 }
+            }
+            finally
+            {
+                intro.Dispose();
+                inGame.Dispose();
+                gameOver.Dispose();
             }
         }
         private static void Update()
@@ -253,9 +262,9 @@ namespace testexetrisathlon
                     Draw();
                 }
             }
-            score += (int)Math.Round(Math.Sqrt(Math.Max(combo * 50 - 50, 0)) * 5);
+            score += (int)Math.Round(Math.Sqrt(Math.Max((combo * 50) - 50, 0)) * 5);
             level = (int)Math.Round(Math.Sqrt(score * 0.01)) + 1;
-            dropRate = 300 - 22 * level;
+            dropRate = 300 - (22 * level);
         }
         private static void Input()
         {
@@ -278,7 +287,7 @@ namespace testexetrisathlon
             if (key.Key == ConsoleKey.DownArrow & isKeyPressed)
                 tet.Drop();
             if (key.Key == ConsoleKey.UpArrow & isKeyPressed)
-                for (; tet.isSomethingBelow() != true;)
+                for (; tet.isSomethingBelow!= true;)
                     tet.Drop();
             if (key.Key == ConsoleKey.Spacebar & isKeyPressed)
             {
@@ -292,10 +301,10 @@ namespace testexetrisathlon
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    SetCursorPosition(1 + 2 * j, i);
+                    SetCursorPosition((2 * j) + 1, i);
                     if (grid[i, j] == 1 | droppedtetrominoeLocationGrid[i, j] == 1)
                     {
-                        SetCursorPosition(1 + 2 * j, i);
+                        SetCursorPosition((2 * j) + 1, i);
                         Write(sqr);
                     }
                     else
