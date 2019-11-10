@@ -3,8 +3,8 @@ using System.Linq;
 using System.Diagnostics;
 using System.Media;
 using System.Reflection;
-using static System.Console;
 using System.Runtime.InteropServices;
+using static System.Console;
 
 //┌─┐
 //│ │
@@ -75,7 +75,7 @@ namespace testexetrisathlon
             Clear();
         }
         enum GameState { exit, menu, game, gameOver }
-        void DrawSymbol()
+        static void DrawSymbol()
         {
             SetCursorPosition(0, 1);
             Write(
@@ -140,28 +140,7 @@ namespace testexetrisathlon
                                     state = GameState.exit;
                                     break;
                                 case "v":
-                                    Clear();
-                                    DrawSymbol();
-                                    bool barActive = true;
-                                    while (barActive)
-                                    {
-                                        SetCursorPosition(3, 20);
-                                        Write("Volume: " + new string('=', SettingsMan.Volume * 2) + "[" + SettingsMan.Volume.ToString("00") + "]" + new string('=', 20 - (SettingsMan.Volume * 2)));
-                                        switch (ReadKey().Key)
-                                        {
-                                            case ConsoleKey.LeftArrow:
-                                                SettingsMan.Volume--;
-                                                break;
-                                            case ConsoleKey.RightArrow:
-                                                SettingsMan.Volume++;
-                                                break;
-                                            case ConsoleKey.Enter:
-                                                barActive = false;
-                                                break;
-                                        }
-                                        NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
-                                        waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
-                                    }
+                                    volumeSlider();
                                     break;
                             }
                             break;
@@ -228,7 +207,34 @@ namespace testexetrisathlon
                 gameOver.Dispose();
             }
         }
-        private static void Update()
+
+        static void volumeSlider()
+        {
+            Clear();
+            DrawSymbol();
+            bool barActive = true;
+            while (barActive)
+            {
+                SetCursorPosition(3, 20);
+                Write("Volume: " + new string('=', SettingsMan.Volume * 2) + "[" + SettingsMan.Volume.ToString("00") + "]" + new string('=', 20 - (SettingsMan.Volume * 2)));
+                switch (ReadKey().Key)
+                {
+                    case ConsoleKey.LeftArrow:
+                        SettingsMan.Volume--;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        SettingsMan.Volume++;
+                        break;
+                    case ConsoleKey.Enter:
+                        barActive = false;
+                        break;
+                }
+                int NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
+                waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
+            }
+        }
+
+        static void Update()
         {
             while (true)
             {
@@ -259,7 +265,7 @@ namespace testexetrisathlon
                 ClearBlock();
             }
         }
-        private static void ClearBlock()
+        static void ClearBlock()
         {
             int combo = 0;
             for (int i = 0; i < 23; i++)
@@ -304,7 +310,7 @@ namespace testexetrisathlon
             level = (int)Math.Round(Math.Sqrt(score * 0.01)) + 1;
             dropRate = 300 - (22 * level);
         }
-        private static void Input()
+        static void Input()
         {
             isKeyPressed = KeyAvailable;
             SetCursorPosition(0, 24);
