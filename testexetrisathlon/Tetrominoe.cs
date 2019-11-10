@@ -33,12 +33,12 @@ namespace testexetrisathlon
         public Tetrominoe()
         {
             shape = tetrominoes[Program.rnd.Next(0, tetrominoes.Count)];
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 7; i++)
             {
-                for (int j = 0; j < 7; j++)
+                for (int j = 0; j < 2; j++)
                 {
-                    SetCursorPosition(i + 23, j + 3);
-                    Write(" ");
+                    SetCursorPosition(i + 26, j + 6);
+                    Write(Program.debug ? "X" : " ");
                 }
             }
             Program.DrawBorder();
@@ -48,7 +48,7 @@ namespace testexetrisathlon
                 {
                     if (shape[i, j] == 1)
                     {
-                        SetCursorPosition(30 - shape.GetLength(1) + (2 * j), i + 5);
+                        SetCursorPosition(30 - shape.GetLength(1) + (2 * j), i + 6);
                         Write(Program.sqr);
                     }
                 }

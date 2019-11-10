@@ -5,6 +5,7 @@ using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using static System.Console;
+using System.Collections.Generic;
 
 //┌─┐
 //│ │
@@ -56,6 +57,7 @@ namespace testexetrisathlon
             colors = new ConsoleColor[2] { BackgroundColor, ForegroundColor };
             BackgroundColor = ConsoleColor.Red;
             ForegroundColor = ConsoleColor.Yellow;
+            SetWindowSize(42, 29);
             SetCursorPosition(0, 0);
             Clear();
 #if (DEBUG)
@@ -79,22 +81,22 @@ namespace testexetrisathlon
         {
             SetCursorPosition(0, 1);
             Write(
-                "             ▀▀▀██████▄▄▄\r\n" +
-                "                    ▀▀▀████▄\r\n" +
-                "             ▄███████▀   ▀███▄\r\n" +
-                "           ▄███████▀       ▀███▄\r\n" +
-                "         ▄████████           ███▄\r\n" +
-                "        ██████████▄           ███▌\r\n" +
-                "        ▀█████▀ ▀███▄         ▐███\r\n" +
-                "          ▀█▀     ▀███▄       ▐███\r\n" +
-                "                    ▀███▄     ███▌\r\n" +
-                "       ▄██▄           ▀███▄  ▐███\r\n" +
-                "     ▄██████▄           ▀███▄███\r\n" +
-                "    █████▀▀████▄▄        ▄█████\r\n" +
-                "    ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
-                "     ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
+                "               ▀▀▀██████▄▄▄\r\n" +
+                "                      ▀▀▀████▄\r\n" +
+                "               ▄███████▀   ▀███▄\r\n" +
+                "             ▄███████▀       ▀███▄\r\n" +
+                "           ▄████████           ███▄\r\n" +
+                "          ██████████▄           ███▌\r\n" +
+                "          ▀█████▀ ▀███▄         ▐███\r\n" +
+                "            ▀█▀     ▀███▄       ▐███\r\n" +
+                "                      ▀███▄     ███▌\r\n" +
+                "         ▄██▄           ▀███▄  ▐███\r\n" +
+                "       ▄██████▄           ▀███▄███\r\n" +
+                "      █████▀▀████▄▄        ▄█████\r\n" +
+                "      ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
+                "       ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
 
-                "   testexetrisathlon v." + assembly.GetName().Version.ToString());
+                "     testexetrisathlon v." + assembly.GetName().Version.ToString());
         }
         void MainN(SoundPlayer intro, SoundPlayer inGame, SoundPlayer gameOver)
         {
@@ -113,19 +115,21 @@ namespace testexetrisathlon
                             gameOver.Stop();
                             intro.PlayLooping();
                             DrawSymbol();
-                            SetCursorPosition(10, 18);
+                            SetCursorPosition(12, 18);
+                            Write("Highscore: " + SettingsMan.HighScore.ToString());
+                            SetCursorPosition(12, 20);
                             Write("Controls: Space");
-                            SetCursorPosition(11, 19);
+                            SetCursorPosition(13, 21);
                             Write("Up, Down, Right");
-                            SetCursorPosition(11, 20);
+                            SetCursorPosition(13, 22);
                             Write("Left");
-                            SetCursorPosition(10, 22);
+                            SetCursorPosition(12, 24);
                             Write("Press s to start");
-                            SetCursorPosition(10, 23);
+                            SetCursorPosition(12, 25);
                             Write("Press x to exit");
-                            SetCursorPosition(10, 24);
+                            SetCursorPosition(12, 26);
                             Write("Press v for settings");
-                            SetCursorPosition(0, 26);
+                            SetCursorPosition(0, 28);
                             Write("Icon made by Freepik from www.flaticon.com");
                             string tmp = ReadKey(true).KeyChar.ToString().ToLower();
                             switch (tmp)
@@ -153,6 +157,8 @@ namespace testexetrisathlon
                             WriteLine("Score " + score);
                             SetCursorPosition(25, 2);
                             WriteLine("LinesCleared " + linesCleared);
+                            SetCursorPosition(25, 4);
+                            WriteLine("Highscore " + SettingsMan.HighScore);
                             nexttet = new Tetrominoe();
                             tet = nexttet;
                             tet.Spawn();
@@ -162,6 +168,7 @@ namespace testexetrisathlon
                             state = GameState.gameOver;
                             break;
                         case GameState.gameOver:
+                            SettingsMan.HighScore = score;
                             gameOver.PlayLooping();
                             string input = "";
                             while ((input != "y") && (input != "n"))
@@ -251,7 +258,7 @@ namespace testexetrisathlon
                     isDropped = false;
                     score += 10;
                 }
-                int j; for (j = 0; j < 10; j++)
+                for (int j = 0; j < 10; j++)
                 {
                     if (droppedtetrominoeLocationGrid[0, j] == 1)
                         return;
@@ -270,17 +277,12 @@ namespace testexetrisathlon
             int combo = 0;
             for (int i = 0; i < 23; i++)
             {
-                int j; for (j = 0; j < 10; j++)
-                {
-                    if (droppedtetrominoeLocationGrid[i, j] == 0)
-                        break;
-                }
-                if (j == 10)
+                if (Enumerable.Range(0, 10).Where(s => droppedtetrominoeLocationGrid[i, s] == 0).Count() == 0)
                 {
                     linesCleared++;
                     combo++;
                     Beep(400, 200);
-                    for (j = 0; j < 10; j++)
+                    for (int j = 0; j < 10; j++)
                     {
                         droppedtetrominoeLocationGrid[i, j] = 0;
                     }
