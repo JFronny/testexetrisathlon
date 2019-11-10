@@ -5,7 +5,6 @@ using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using static System.Console;
-using System.Collections.Generic;
 
 //┌─┐
 //│ │
@@ -144,7 +143,7 @@ namespace testexetrisathlon
                                     state = GameState.exit;
                                     break;
                                 case "v":
-                                    volumeSlider();
+                                    VolumeSlider();
                                     break;
                             }
                             break;
@@ -215,7 +214,7 @@ namespace testexetrisathlon
             }
         }
 
-        static void volumeSlider()
+        static void VolumeSlider()
         {
             Clear();
             DrawSymbol();
