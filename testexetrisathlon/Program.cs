@@ -153,7 +153,7 @@ namespace testexetrisathlon
                             SetCursorPosition(25, 0);
                             WriteLine("Level " + level);
                             SetCursorPosition(25, 1);
-                            WriteLine("Score " + score);
+                            WriteLine("Score " + score + "/" + (Math.Pow(level, 2) * 100).ToString());
                             SetCursorPosition(25, 2);
                             WriteLine("LinesCleared " + linesCleared);
                             SetCursorPosition(25, 4);
@@ -361,7 +361,7 @@ namespace testexetrisathlon
             SetCursorPosition(25, 0);
             WriteLine("Level " + level);
             SetCursorPosition(25, 1);
-            WriteLine("Score " + score);
+            WriteLine("Score " + score + "/" + (Math.Pow(level, 2) * 100).ToString());
             SetCursorPosition(25, 2);
             WriteLine("LinesCleared " + linesCleared);
         }
