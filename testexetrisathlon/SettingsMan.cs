@@ -1,56 +1,65 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace testexetrisathlon
 {
-    static class SettingsMan
+    internal static class SettingsMan
     {
-        static XElement doc;
-        static string xmlfile = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\Save.xml";
+        private static readonly string XmlFile =
+            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Save.xml");
+
         public static int Volume
         {
-            get {
-                if (doc == null)
-                    Load();
-                return toRange(int.Parse(doc.Element("Save").Element("Volume").Value), 0, 10);
+            get => ToRange(int.Parse(Load().Element("Volume").Value), 0, 10);
+            set
+            {
+                XElement doc = Load();
+                doc.Element("Volume").Value = ToRange(value, 0, 10).ToString();
+                doc.Save();
             }
-            set {
-                doc.Element("Save").Element("Volume").Value = toRange(value, 0, 10).ToString();
-                Save();
-            }
-        }
-        public static int HighScore
-        {
-            get {
-                if (doc == null)
-                    Load();
-                return int.Parse(doc.Element("Save").Element("HighScore").Value);
-            }
-            set {
-                doc.Element("Save").Element("HighScore").Value = value.ToString();
-                Save();
-            }
-        }
-        static void Save() => doc.Save(xmlfile);
-        static void Load()
-        {
-            if (!File.Exists(xmlfile))
-                new XElement("Save", new XElement("Volume", 10), new XElement("HighScore", 0)).Save(xmlfile);
-            doc = XDocument.Load(xmlfile).Root;
-            if (doc.Element("Save") == null)
-                doc.Add(new XElement("Save"));
-            if (doc.Element("Save").Element("Volume") == null)
-                doc.Element("Save").Add(new XElement("Volume", 10));
-            if (doc.Element("Save").Element("HighScore") == null)
-                doc.Element("Save").Add(new XElement("HighScore", 10));
         }
 
-        static int toRange(int value, int rangeStart, int rangeEnd) => Math.Min(Math.Max(value, rangeStart), rangeEnd);
+        public static int HighScore
+        {
+            get => int.Parse(Load().Element("HighScore").Value);
+            set
+            {
+                XElement doc = Load();
+                doc.Element("HighScore").Value = value.ToString();
+                doc.Save();
+            }
+        }
+
+        public static bool UsingAltTrack
+        {
+            get => bool.Parse(Load().Element("AltTrack").Value);
+            set
+            {
+                XElement doc = Load();
+                doc.Element("AltTrack").Value = value.ToString();
+                doc.Save();
+            }
+        }
+
+        private static void Save(this XElement doc) => doc.Save(XmlFile);
+
+        private static XElement Load()
+        {
+            if (!File.Exists(XmlFile))
+                new XElement("Save").Save(XmlFile);
+            XElement doc = XDocument.Load(XmlFile).Root;
+            if (doc.Element("Volume") == null)
+                doc.Add(new XElement("Volume", 10));
+            if (doc.Element("HighScore") == null)
+                doc.Add(new XElement("HighScore", 10));
+            if (doc.Element("AltTrack") == null)
+                doc.Add(new XElement("AltTrack", false));
+            return doc;
+        }
+
+        private static int ToRange(int value, int rangeStart, int rangeEnd) =>
+            Math.Min(Math.Max(value, rangeStart), rangeEnd);
     }
 }

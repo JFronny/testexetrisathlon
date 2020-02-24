@@ -1,6 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿#define WINDOWS
+
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -27,95 +29,74 @@ using static System.Console;
 
 namespace testexetrisathlon
 {
-    class Program
+    internal static class Program
     {
+        public const string Sqr = "■";
+        public static int[,] Grid = new int[23, 10];
+        public static int[,] DroppedTetrominoeLocationGrid = new int[23, 10];
+        private static Stopwatch _dropTimer = new Stopwatch();
+        private static int _dropTime;
+        private static int _dropRate = 300;
+        public static bool IsDropped;
+        private static Tetrominoe _tet;
+        private static Tetrominoe _nextTet;
+        private static ConsoleKeyInfo _key;
+        private static bool _isKeyPressed;
+        private static int _linesCleared;
+        private static int _score;
+        private static int _level = 1;
+        private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+        private static readonly ConsoleColor[] Colors = {BackgroundColor, ForegroundColor};
+        public static bool Debug;
+        public static readonly Random Rnd = new Random();
+        private static readonly SoundPlayer Intro =
+            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.Intro.wav"));
+        private static readonly SoundPlayer InGame1 =
+            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.InGame1.wav"));
+        private static readonly SoundPlayer InGame2 =
+            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.InGame2.wav"));
+        private static readonly SoundPlayer GameOver =
+            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.GameOver.wav"));
+        private static SoundPlayer _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
+#if WINDOWS
         [DllImport("winmm.dll")]
-        static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
+        private static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
+#endif
 
-        [DllImport("winmm.dll")]
-        static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
-        public static string sqr = "■";
-        public static int[,] grid = new int[23, 10];
-        public static int[,] droppedtetrominoeLocationGrid = new int[23, 10];
-        public static Stopwatch dropTimer = new Stopwatch();
-        public static Stopwatch inputTimer = new Stopwatch();
-        public static int dropTime, dropRate = 300;
-        public static bool isDropped = false;
-        static Tetrominoe tet;
-        static Tetrominoe nexttet;
-        public static ConsoleKeyInfo key;
-        public static bool isKeyPressed = false;
-        public static int linesCleared = 0, score = 0, level = 1;
-        static readonly Assembly assembly = Assembly.GetExecutingAssembly();
-        static ConsoleColor[] colors;
-        public static bool debug;
-        public static Random rnd;
-        static void Main(string[] args)
+#if DEBUG
+        private static void Main()
         {
-            rnd = new Random();
-            colors = new ConsoleColor[2] { BackgroundColor, ForegroundColor };
+            Debug = true;
+#else
+        private static void Main(string[] args)
+        {
+            Debug = args.Contains("debug");
+#endif
             BackgroundColor = ConsoleColor.Red;
             ForegroundColor = ConsoleColor.Yellow;
             SetWindowSize(42, 29);
             SetCursorPosition(0, 0);
             Clear();
-#if (DEBUG)
-            debug = true;
-#else
-            debug = args.Contains("debug");
-#endif
-            if (debug)
+            if (Debug)
                 SetWindowSize(50, 40);
-            new Program().MainN(
-                new SoundPlayer(assembly.GetManifestResourceStream("testexetrisathlon.Intro.wav")),
-                new SoundPlayer(assembly.GetManifestResourceStream("testexetrisathlon.InGame.wav")),
-                new SoundPlayer(assembly.GetManifestResourceStream("testexetrisathlon.GameOver.wav")));
-            BackgroundColor = colors[0];
-            ForegroundColor = colors[1];
-            SetCursorPosition(0, 0);
-            Clear();
-        }
-        enum GameState { exit, menu, game, gameOver }
-        static void DrawSymbol()
-        {
-            SetCursorPosition(0, 1);
-            Write(
-                "               ▀▀▀██████▄▄▄\r\n" +
-                "                      ▀▀▀████▄\r\n" +
-                "               ▄███████▀   ▀███▄\r\n" +
-                "             ▄███████▀       ▀███▄\r\n" +
-                "           ▄████████           ███▄\r\n" +
-                "          ██████████▄           ███▌\r\n" +
-                "          ▀█████▀ ▀███▄         ▐███\r\n" +
-                "            ▀█▀     ▀███▄       ▐███\r\n" +
-                "                      ▀███▄     ███▌\r\n" +
-                "         ▄██▄           ▀███▄  ▐███\r\n" +
-                "       ▄██████▄           ▀███▄███\r\n" +
-                "      █████▀▀████▄▄        ▄█████\r\n" +
-                "      ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
-                "       ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
-
-                "     testexetrisathlon v." + assembly.GetName().Version.ToString());
-        }
-        void MainN(SoundPlayer intro, SoundPlayer inGame, SoundPlayer gameOver)
-        {
-            int NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
-            waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
+#if WINDOWS
+            int newVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
+            waveOutSetVolume(IntPtr.Zero, ((uint) newVolume & 0x0000ffff) | ((uint) newVolume << 16));
+#endif
             bool playing = true;
-            GameState state = GameState.menu;
+            GameState state = GameState.Menu;
             try
             {
                 while (playing)
-                {
                     switch (state)
                     {
-                        case GameState.menu:
+                        case GameState.Menu:
                             Clear();
-                            gameOver.Stop();
-                            intro.PlayLooping();
+                            GameOver.Stop();
+                            Intro.PlayLooping();
                             DrawSymbol();
                             SetCursorPosition(12, 18);
-                            Write("Highscore: " + SettingsMan.HighScore.ToString());
+                            Write("HighScore: " + SettingsMan.HighScore);
                             SetCursorPosition(12, 20);
                             Write("Controls: Space");
                             SetCursorPosition(13, 21);
@@ -134,43 +115,43 @@ namespace testexetrisathlon
                             switch (tmp)
                             {
                                 case "s":
-                                    intro.Stop();
-                                    state = GameState.game;
+                                    Intro.Stop();
+                                    state = GameState.Game;
                                     Clear();
                                     DrawBorder();
                                     break;
                                 case "x":
-                                    state = GameState.exit;
+                                    state = GameState.Exit;
                                     break;
                                 case "v":
-                                    VolumeSlider();
+                                    SettingsMenu();
                                     break;
                             }
                             break;
-                        case GameState.game:
-                            inGame.PlayLooping();
-                            dropTimer.Start();
+                        case GameState.Game:
+                            _inGame.PlayLooping();
+                            _dropTimer.Start();
                             SetCursorPosition(25, 0);
-                            WriteLine("Level " + level);
+                            WriteLine("Level " + _level);
                             SetCursorPosition(25, 1);
-                            WriteLine("Score " + score + "/" + (Math.Pow(level, 2) * 100).ToString());
+                            WriteLine("Score " + _score + "/" + (Math.Pow(_level, 2) * 100));
                             SetCursorPosition(25, 2);
-                            WriteLine("LinesCleared " + linesCleared);
+                            WriteLine("LinesCleared " + _linesCleared);
                             SetCursorPosition(25, 4);
-                            WriteLine("Highscore " + SettingsMan.HighScore);
-                            nexttet = new Tetrominoe();
-                            tet = nexttet;
-                            tet.Spawn();
-                            nexttet = new Tetrominoe();
+                            WriteLine("HighScore " + SettingsMan.HighScore);
+                            _nextTet = new Tetrominoe();
+                            _tet = _nextTet;
+                            _tet.Spawn();
+                            _nextTet = new Tetrominoe();
                             Update();
-                            inGame.Stop();
-                            state = GameState.gameOver;
+                            _inGame.Stop();
+                            state = GameState.GameOver;
                             break;
-                        case GameState.gameOver:
-                            SettingsMan.HighScore = score;
-                            gameOver.PlayLooping();
+                        case GameState.GameOver:
+                            SettingsMan.HighScore = _score;
+                            GameOver.PlayLooping();
                             string input = "";
-                            while ((input != "y") && (input != "n"))
+                            while (input != "y" && input != "n")
                             {
                                 Clear();
                                 DrawBorder();
@@ -182,87 +163,148 @@ namespace testexetrisathlon
                                 WriteLine("├───────────────────┤");
                                 input = ReadKey().KeyChar.ToString().ToLower();
                             }
-                            grid = new int[23, 10];
-                            droppedtetrominoeLocationGrid = new int[23, 10];
-                            dropTimer = new Stopwatch();
-                            inputTimer = new Stopwatch();
-                            dropRate = 300;
-                            isDropped = false;
-                            isKeyPressed = false;
-                            linesCleared = 0;
-                            score = 0;
-                            level = 1;
+                            Grid = new int[23, 10];
+                            DroppedTetrominoeLocationGrid = new int[23, 10];
+                            _dropTimer = new Stopwatch();
+                            _dropRate = 300;
+                            IsDropped = false;
+                            _isKeyPressed = false;
+                            _linesCleared = 0;
+                            _score = 0;
+                            _level = 1;
                             GC.Collect();
                             Clear();
                             DrawBorder();
-                            if (input == "y")
-                                state = GameState.game;
-                            else
-                                state = GameState.menu;
+                            state = input == "y" ? GameState.Game : GameState.Menu;
                             break;
-                        default:
+                        case GameState.Exit:
                             playing = false;
                             break;
+                        default: throw new ArgumentOutOfRangeException();
                     }
-                }
             }
             finally
             {
-                intro.Dispose();
-                inGame.Dispose();
-                gameOver.Dispose();
+                Intro.Dispose();
+                InGame1.Dispose();
+                InGame2.Dispose();
+                GameOver.Dispose();
             }
+            BackgroundColor = Colors[0];
+            ForegroundColor = Colors[1];
+            SetCursorPosition(0, 0);
+            Clear();
         }
 
-        static void VolumeSlider()
+        private static void DrawSymbol()
+        {
+            SetCursorPosition(0, 1);
+            Write(
+                "               ▀▀▀██████▄▄▄\r\n" +
+                "                      ▀▀▀████▄\r\n" +
+                "               ▄███████▀   ▀███▄\r\n" +
+                "             ▄███████▀       ▀███▄\r\n" +
+                "           ▄████████           ███▄\r\n" +
+                "          ██████████▄           ███▌\r\n" +
+                "          ▀█████▀ ▀███▄         ▐███\r\n" +
+                "            ▀█▀     ▀███▄       ▐███\r\n" +
+                "                      ▀███▄     ███▌\r\n" +
+                "         ▄██▄           ▀███▄  ▐███\r\n" +
+                "       ▄██████▄           ▀███▄███\r\n" +
+                "      █████▀▀████▄▄        ▄█████\r\n" +
+                "      ████▀   ▀▀█████▄▄▄▄█████████▄\r\n" +
+                "       ▀▀         ▀▀██████▀▀   ▀▀██\r\n\r\n" +
+                "     testexetrisathlon v." + Assembly.GetName().Version);
+        }
+
+        private static void SettingsMenu()
         {
             Clear();
             DrawSymbol();
+#if !WINDOWS
+            SetCursorPosition(2, 19);
+            Write("Volume is not supported in this build!");
+#endif
             bool barActive = true;
+            int currentSetting = 0;
             while (barActive)
             {
+                bool curr = SettingsMan.UsingAltTrack;
                 SetCursorPosition(3, 20);
-                Write("Volume: " + new string('=', SettingsMan.Volume * 2) + "[" + SettingsMan.Volume.ToString("00") + "]" + new string('=', 20 - (SettingsMan.Volume * 2)));
-                switch (ReadKey().Key)
+                ForegroundColor = currentSetting == 0 ? ConsoleColor.White : ConsoleColor.Yellow;
+                Write("Volume: " + new string('=', SettingsMan.Volume * 2) + "[" + SettingsMan.Volume.ToString("00") +
+                      "]" + new string('=', 20 - (SettingsMan.Volume * 2)));
+                SetCursorPosition(5, 22);
+                ForegroundColor = currentSetting == 1 ? ConsoleColor.White : ConsoleColor.Yellow;
+                Write($"{(curr ? "  Using" : "Not using")} alternative soundtrack  ");
+                ForegroundColor = ConsoleColor.Yellow;
+                switch (currentSetting)
                 {
-                    case ConsoleKey.LeftArrow:
-                        SettingsMan.Volume--;
+                    case 0:
+                        switch (ReadKey().Key)
+                        {
+                            case ConsoleKey.LeftArrow:
+                                SettingsMan.Volume--;
+                                break;
+                            case ConsoleKey.RightArrow:
+                                SettingsMan.Volume++;
+                                break;
+                            case ConsoleKey.Enter:
+                                barActive = false;
+                                break;
+                            case ConsoleKey.Tab:
+                                currentSetting = 1;
+                                break;
+                        }
                         break;
-                    case ConsoleKey.RightArrow:
-                        SettingsMan.Volume++;
-                        break;
-                    case ConsoleKey.Enter:
-                        barActive = false;
+                    case 1:
+                        switch (ReadKey().Key)
+                        {
+                            case ConsoleKey.LeftArrow:
+                            case ConsoleKey.RightArrow:
+                            case ConsoleKey.Spacebar:
+                                SettingsMan.UsingAltTrack = !curr;
+                                break;
+                            case ConsoleKey.Enter:
+                                barActive = false;
+                                break;
+                            case ConsoleKey.Tab:
+                                currentSetting = 0;
+                                break;
+                        }
                         break;
                 }
-                int NewVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
-                waveOutSetVolume(IntPtr.Zero, ((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
+#if WINDOWS
+                int newVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
+                waveOutSetVolume(IntPtr.Zero, ((uint) newVolume & 0x0000ffff) | ((uint) newVolume << 16));
+#endif
+                _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
             }
         }
 
-        static void Update()
+        private static void Update()
         {
             while (true)
             {
-                dropTime = (int)dropTimer.ElapsedMilliseconds;
-                if (dropTime > dropRate)
+                _dropTime = (int) _dropTimer.ElapsedMilliseconds;
+                if (_dropTime > _dropRate)
                 {
-                    dropTime = 0; dropTimer.Restart(); tet.Drop();
+                    _dropTime = 0;
+                    _dropTimer.Restart();
+                    _tet.Drop();
                 }
-                if (isDropped == true)
+                if (IsDropped)
                 {
-                    tet = nexttet;
-                    nexttet = new Tetrominoe();
-                    tet.Spawn();
-                    isDropped = false;
-                    score += 10;
+                    _tet = _nextTet;
+                    _nextTet = new Tetrominoe();
+                    _tet.Spawn();
+                    IsDropped = false;
+                    _score += 10;
                 }
                 for (int j = 0; j < 10; j++)
-                {
-                    if (droppedtetrominoeLocationGrid[0, j] == 1)
+                    if (DroppedTetrominoeLocationGrid[0, j] == 1)
                         return;
-                }
-                if (debug)
+                if (Debug)
                 {
                     SetCursorPosition(0, 25);
                     WriteLine("!DEBUG MODE ENABLED!");
@@ -271,100 +313,89 @@ namespace testexetrisathlon
                 ClearBlock();
             }
         }
-        static void ClearBlock()
+
+        private static void ClearBlock()
         {
             int combo = 0;
             for (int i = 0; i < 23; i++)
-            {
-                if (Enumerable.Range(0, 10).Where(s => droppedtetrominoeLocationGrid[i, s] == 0).Count() == 0)
+                if (Enumerable.Range(0, 10).All(s => DroppedTetrominoeLocationGrid[i, s] != 0))
                 {
-                    linesCleared++;
+                    _linesCleared++;
                     combo++;
                     Beep(400, 200);
-                    for (int j = 0; j < 10; j++)
-                    {
-                        droppedtetrominoeLocationGrid[i, j] = 0;
-                    }
-                    int[,] newdroppedtetrominoeLocationGrid = new int[23, 10];
+                    for (int j = 0; j < 10; j++) DroppedTetrominoeLocationGrid[i, j] = 0;
+                    int[,] newDroppedTetrominoeLocationGrid = new int[23, 10];
                     for (int k = 1; k < i; k++)
-                    {
-                        for (int l = 0; l < 10; l++)
-                        {
-                            newdroppedtetrominoeLocationGrid[k + 1, l] = droppedtetrominoeLocationGrid[k, l];
-                        }
-                    }
+                    for (int l = 0; l < 10; l++)
+                        newDroppedTetrominoeLocationGrid[k + 1, l] = DroppedTetrominoeLocationGrid[k, l];
                     for (int k = 1; k < i; k++)
-                    {
-                        for (int l = 0; l < 10; l++)
-                        {
-                            droppedtetrominoeLocationGrid[k, l] = 0;
-                        }
-                    }
+                    for (int l = 0; l < 10; l++)
+                        DroppedTetrominoeLocationGrid[k, l] = 0;
                     for (int k = 0; k < 23; k++)
-                        for (int l = 0; l < 10; l++)
-                            if (newdroppedtetrominoeLocationGrid[k, l] == 1)
-                                droppedtetrominoeLocationGrid[k, l] = 1;
+                    for (int l = 0; l < 10; l++)
+                        if (newDroppedTetrominoeLocationGrid[k, l] == 1)
+                            DroppedTetrominoeLocationGrid[k, l] = 1;
                     Draw();
                 }
-            }
-            score += (int)Math.Round(Math.Sqrt(Math.Max((combo * 50) - 50, 0)) * 5);
-            level = (int)Math.Round(Math.Sqrt(score * 0.01)) + 1;
-            dropRate = 300 - (22 * level);
+            _score += (int) Math.Round(Math.Sqrt(Math.Max((combo * 50) - 50, 0)) * 5);
+            _level = (int) Math.Round(Math.Sqrt(_score * 0.01)) + 1;
+            _dropRate = 300 - (22 * _level);
         }
-        static void Input()
+
+        private static void Input()
         {
-            isKeyPressed = KeyAvailable;
+            _isKeyPressed = KeyAvailable;
             SetCursorPosition(0, 24);
-            if (isKeyPressed)
-                key = ReadKey();
-            if (key.Key == ConsoleKey.LeftArrow & !tet.isSomethingLeft() & isKeyPressed)
+            if (_isKeyPressed)
+                _key = ReadKey();
+            if ((_key.Key == ConsoleKey.LeftArrow) & !_tet.IsSomethingLeft() & _isKeyPressed)
             {
                 for (int i = 0; i < 4; i++)
-                    tet.location[i][1] -= 1;
-                tet.Update();
+                    _tet.Location[i][1] -= 1;
+                _tet.Update();
             }
-            else if (key.Key == ConsoleKey.RightArrow & !tet.isSomethingRight() & isKeyPressed)
+            else if ((_key.Key == ConsoleKey.RightArrow) & !_tet.IsSomethingRight() & _isKeyPressed)
             {
                 for (int i = 0; i < 4; i++)
-                    tet.location[i][1] += 1;
-                tet.Update();
+                    _tet.Location[i][1] += 1;
+                _tet.Update();
             }
-            if (key.Key == ConsoleKey.DownArrow & isKeyPressed)
-                tet.Drop();
-            if (key.Key == ConsoleKey.UpArrow & isKeyPressed)
-                for (; tet.isSomethingBelow!= true;)
-                    tet.Drop();
-            if (key.Key == ConsoleKey.Spacebar & isKeyPressed)
+            if ((_key.Key == ConsoleKey.DownArrow) & _isKeyPressed)
+                _tet.Drop();
+            if ((_key.Key == ConsoleKey.UpArrow) & _isKeyPressed)
+                for (; _tet.IsSomethingBelow != true;)
+                    _tet.Drop();
+            if ((_key.Key == ConsoleKey.Spacebar) & _isKeyPressed)
             {
-                tet.Rotate();
-                tet.Update();
+                _tet.Rotate();
+                _tet.Update();
             }
         }
+
         public static void Draw()
         {
             for (int i = 0; i < 23; ++i)
+            for (int j = 0; j < 10; j++)
             {
-                for (int j = 0; j < 10; j++)
+                SetCursorPosition((2 * j) + 1, i);
+                if ((Grid[i, j] == 1) | (DroppedTetrominoeLocationGrid[i, j] == 1))
                 {
                     SetCursorPosition((2 * j) + 1, i);
-                    if (grid[i, j] == 1 | droppedtetrominoeLocationGrid[i, j] == 1)
-                    {
-                        SetCursorPosition((2 * j) + 1, i);
-                        Write(sqr);
-                    }
-                    else
-                    {
-                        Write(" ");
-                    }
+                    Write(Sqr);
+                }
+                else
+                {
+                    Write(" ");
                 }
             }
             SetCursorPosition(25, 0);
-            WriteLine("Level " + level);
+            WriteLine("Level " + _level);
             SetCursorPosition(25, 1);
-            WriteLine("Score " + score + "/" + (Math.Pow(level, 2) * 100).ToString());
+            WriteLine("Score " + _score + "/" + (Math.Pow(_level, 2) * 100));
             SetCursorPosition(25, 2);
-            WriteLine("LinesCleared " + linesCleared);
+            WriteLine("LinesCleared " + _linesCleared);
         }
+
         public static void DrawBorder()
         {
             for (int lengthCount = 0; lengthCount <= 22; lengthCount++)
@@ -376,11 +407,16 @@ namespace testexetrisathlon
             }
             SetCursorPosition(0, 23);
             Write("└");
-            for (int widthCount = 0; widthCount <= 18; widthCount++)
-            {
-                Write("─");
-            }
+            for (int widthCount = 0; widthCount <= 18; widthCount++) Write("─");
             Write("┘");
+        }
+
+        private enum GameState
+        {
+            Exit,
+            Menu,
+            Game,
+            GameOver
         }
     }
 }

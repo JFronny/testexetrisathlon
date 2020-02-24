@@ -9,6 +9,8 @@
     <AssemblyName>testexetrisathlon</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -75,11 +77,6 @@
     <Compile Include="Tetrominoe.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="GameOver.wav" />
-    <EmbeddedResource Include="InGame.wav" />
     <EmbeddedResource Include="Intro.wav" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +85,9 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="GameOver.wav" />
+    <EmbeddedResource Include="InGame1.wav" />
+    <EmbeddedResource Include="InGame2.wav" />
     <Content Include="tetris_yUxH6t_256px.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
