@@ -1,4 +1,4 @@
-﻿#define WINDOWS
+﻿//#define WINDOWS
 
 using System;
 using System.Collections.Generic;
@@ -33,14 +33,6 @@ namespace testexetrisathlon
     internal static class Program
     {
         public const string Sqr = "■";
-
-        /*private static readonly WaveStream Intro = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.Intro.wav"));
-        private static readonly WaveStream InGame1 = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.InGame1.wav"));
-        private static readonly WaveStream InGame2 = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.InGame2.wav"));
-        private static readonly WaveStream GameOver = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.GameOver.wav"));
-        private static WaveStream _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
-        private static WaveStream _current = Intro;
-        private static WaveOutEvent _output = new WaveOutEvent();*/
         private const string Intro = "Intro";
         private const string GameOver = "GameOver";
         public static int[,] Grid = new int[23, 10];
@@ -63,15 +55,17 @@ namespace testexetrisathlon
         public static readonly Random Rnd = new Random();
         private static ISoundManager soundManager;
         private static string InGame => SettingsMan.UsingAltTrack ? "InGame2" : "InGame1";
-#if WINDOWS
-        [DllImport("winmm.dll")]
-        private static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
-#endif
 
 #if DEBUG
         private static void Main()
         {
-            soundManager = new WindowsSoundManager();
+            soundManager = new
+#if WINDOW
+                WindowsSoundManager
+#else
+                LinuxSoundManager
+#endif
+                ();
             soundManager.Init(new Dictionary<string, string>
             {
                 {"Intro", "testexetrisathlon.Intro.wav"},
@@ -87,15 +81,13 @@ namespace testexetrisathlon
 #endif
             BackgroundColor = ConsoleColor.Red;
             ForegroundColor = ConsoleColor.Yellow;
+#if WINDOWS
             SetWindowSize(42, 29);
-            SetCursorPosition(0, 0);
-            Clear();
             if (Debug)
                 SetWindowSize(50, 40);
-#if WINDOWS
-            int newVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
-            waveOutSetVolume(IntPtr.Zero, ((uint) newVolume & 0x0000ffff) | ((uint) newVolume << 16));
 #endif
+            SetCursorPosition(0, 0);
+            Clear();
             bool playing = true;
             GameState state = GameState.Menu;
             try
@@ -325,7 +317,7 @@ namespace testexetrisathlon
                 {
                     _linesCleared++;
                     combo++;
-                    Beep(400, 200);
+                    Beeper.Beep(400, 200);
                     for (int j = 0; j < 10; j++) DroppedTetrominoeLocationGrid[i, j] = 0;
                     int[,] newDroppedTetrominoeLocationGrid = new int[23, 10];
                     for (int k = 1; k < i; k++)

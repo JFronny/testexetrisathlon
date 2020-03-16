@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <OutputType>Exe</OutputType>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
@@ -9,7 +8,12 @@
     <Deterministic>false</Deterministic>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>if exist "$(SolutionDir)Data\pkgtool.exe" ($(SolutionDir)Data\pkgtool.exe build --noLogo --binDir .) else if exist "%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" ("%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" build --noLogo --binDir .) else echo Cound not find Package build tools, skipping</PostBuildEvent>
+    <PostBuildEvent Condition="'$(OS)' == 'Windows_NT' ">
+      if exist "$(SolutionDir)Data\pkgtool.exe" ($(SolutionDir)Data\pkgtool.exe build --noLogo --binDir .) else if exist "%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" ("%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" build --noLogo --binDir .) else echo Cound not find Package build tools, skipping
+    </PostBuildEvent>
+    <PostBuildEvent Condition="'$(OS)' != 'Windows_NT'">
+      if [[ -f "$(SolutionDir)Data/pkgtool.exe" ]]; then $(SolutionDir)Data/pkgtool.exe build --noLogo --binDir .; else echo Cound not find Package build tools, skipping; fi
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>tetris_yUxH6t_256px.ico</ApplicationIcon>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using testexetrisathlon.SoundManagement;
 using static System.Console;
 
 namespace testexetrisathlon
@@ -85,7 +86,7 @@ namespace testexetrisathlon
             {
                 Location.ForEach(s => Program.DroppedTetrominoeLocationGrid[s[0], s[1]] = 1);
                 Program.IsDropped = true;
-                Beep(800, 200);
+                Beeper.Beep(800, 200);
             }
             else
             {
