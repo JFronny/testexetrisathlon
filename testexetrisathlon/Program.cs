@@ -1,11 +1,12 @@
 ﻿#define WINDOWS
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using testexetrisathlon.SoundManagement;
 using static System.Console;
 
 //┌─┐
@@ -32,6 +33,16 @@ namespace testexetrisathlon
     internal static class Program
     {
         public const string Sqr = "■";
+
+        /*private static readonly WaveStream Intro = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.Intro.wav"));
+        private static readonly WaveStream InGame1 = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.InGame1.wav"));
+        private static readonly WaveStream InGame2 = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.InGame2.wav"));
+        private static readonly WaveStream GameOver = new WaveFileReader(Assembly.GetManifestResourceStream("testexetrisathlon.GameOver.wav"));
+        private static WaveStream _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
+        private static WaveStream _current = Intro;
+        private static WaveOutEvent _output = new WaveOutEvent();*/
+        private const string Intro = "Intro";
+        private const string GameOver = "GameOver";
         public static int[,] Grid = new int[23, 10];
         public static int[,] DroppedTetrominoeLocationGrid = new int[23, 10];
         private static Stopwatch _dropTimer = new Stopwatch();
@@ -48,16 +59,10 @@ namespace testexetrisathlon
         private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
         private static readonly ConsoleColor[] Colors = {BackgroundColor, ForegroundColor};
         public static bool Debug;
+
         public static readonly Random Rnd = new Random();
-        private static readonly SoundPlayer Intro =
-            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.Intro.wav"));
-        private static readonly SoundPlayer InGame1 =
-            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.InGame1.wav"));
-        private static readonly SoundPlayer InGame2 =
-            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.InGame2.wav"));
-        private static readonly SoundPlayer GameOver =
-            new SoundPlayer(Assembly.GetManifestResourceStream("testexetrisathlon.GameOver.wav"));
-        private static SoundPlayer _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
+        private static ISoundManager soundManager;
+        private static string InGame => SettingsMan.UsingAltTrack ? "InGame2" : "InGame1";
 #if WINDOWS
         [DllImport("winmm.dll")]
         private static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
@@ -66,6 +71,14 @@ namespace testexetrisathlon
 #if DEBUG
         private static void Main()
         {
+            soundManager = new WindowsSoundManager();
+            soundManager.Init(new Dictionary<string, string>
+            {
+                {"Intro", "testexetrisathlon.Intro.wav"},
+                {"InGame1", "testexetrisathlon.InGame1.wav"},
+                {"InGame2", "testexetrisathlon.InGame2.wav"},
+                {"GameOver", "testexetrisathlon.GameOver.wav"}
+            });
             Debug = true;
 #else
         private static void Main(string[] args)
@@ -92,8 +105,7 @@ namespace testexetrisathlon
                     {
                         case GameState.Menu:
                             Clear();
-                            GameOver.Stop();
-                            Intro.PlayLooping();
+                            soundManager.SetCurrent(Intro);
                             DrawSymbol();
                             SetCursorPosition(12, 18);
                             Write("HighScore: " + SettingsMan.HighScore);
@@ -115,7 +127,6 @@ namespace testexetrisathlon
                             switch (tmp)
                             {
                                 case "s":
-                                    Intro.Stop();
                                     state = GameState.Game;
                                     Clear();
                                     DrawBorder();
@@ -129,7 +140,7 @@ namespace testexetrisathlon
                             }
                             break;
                         case GameState.Game:
-                            _inGame.PlayLooping();
+                            soundManager.SetCurrent(InGame);
                             _dropTimer.Start();
                             SetCursorPosition(25, 0);
                             WriteLine("Level " + _level);
@@ -144,12 +155,11 @@ namespace testexetrisathlon
                             _tet.Spawn();
                             _nextTet = new Tetrominoe();
                             Update();
-                            _inGame.Stop();
                             state = GameState.GameOver;
                             break;
                         case GameState.GameOver:
                             SettingsMan.HighScore = _score;
-                            GameOver.PlayLooping();
+                            soundManager.SetCurrent(GameOver);
                             string input = "";
                             while (input != "y" && input != "n")
                             {
@@ -185,10 +195,7 @@ namespace testexetrisathlon
             }
             finally
             {
-                Intro.Dispose();
-                InGame1.Dispose();
-                InGame2.Dispose();
-                GameOver.Dispose();
+                soundManager.Dispose();
             }
             BackgroundColor = Colors[0];
             ForegroundColor = Colors[1];
@@ -274,11 +281,7 @@ namespace testexetrisathlon
                         }
                         break;
                 }
-#if WINDOWS
-                int newVolume = (ushort.MaxValue / 10) * SettingsMan.Volume;
-                waveOutSetVolume(IntPtr.Zero, ((uint) newVolume & 0x0000ffff) | ((uint) newVolume << 16));
-#endif
-                _inGame = SettingsMan.UsingAltTrack ? InGame2 : InGame1;
+                soundManager.SetVolume(SettingsMan.Volume * 10);
             }
         }
 
@@ -365,11 +368,9 @@ namespace testexetrisathlon
             if ((_key.Key == ConsoleKey.UpArrow) & _isKeyPressed)
                 for (; _tet.IsSomethingBelow != true;)
                     _tet.Drop();
-            if ((_key.Key == ConsoleKey.Spacebar) & _isKeyPressed)
-            {
-                _tet.Rotate();
-                _tet.Update();
-            }
+            if (!((_key.Key == ConsoleKey.Spacebar) & _isKeyPressed)) return;
+            _tet.Rotate();
+            _tet.Update();
         }
 
         public static void Draw()
