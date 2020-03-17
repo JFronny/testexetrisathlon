@@ -8,10 +8,10 @@ namespace testexetrisathlon.SoundManagement
     public sealed class WindowsSoundManager : ISoundManager
     {
         private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-        private WaveOutEvent _output;
         private WaveStream _current;
         private string _currentId;
         private Dictionary<string, LoopStream> _loadedSounds;
+        private WaveOutEvent _output;
 
         public void Init(Dictionary<string, string> manifestResources)
         {

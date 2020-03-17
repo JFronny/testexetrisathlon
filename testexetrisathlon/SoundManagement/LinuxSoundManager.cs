@@ -8,12 +8,14 @@ namespace testexetrisathlon.SoundManagement
     public class LinuxSoundManager : ISoundManager
     {
         private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-        private Dictionary<string, string> _files;
+        private ProcessLoop? _alsaProc;
         private string _current;
-        private Process? alsa;
+        private Dictionary<string, string> _files;
+
         public void Dispose()
         {
             foreach (string file in _files.Values) File.Delete(file);
+            if (_alsaProc != null) _alsaProc.IsRunning = false;
         }
 
         public void Init(Dictionary<string, string> manifestResources)
@@ -35,27 +37,20 @@ namespace testexetrisathlon.SoundManagement
         public void SetCurrent(string id)
         {
             if (_current == id) return;
-            alsa?.Kill();
+            if (_alsaProc != null) _alsaProc.IsRunning = false;
             _current = id;
             //TODO fix actually killing, remove orphan processes
-            alsa = new Process
+            _alsaProc = new ProcessLoop(new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "/bin/sh",
-                    Arguments = $"-c \"while [ true ]; do aplay -q {_files[id].Replace("\"", "\\\"")}; done\"",
-                    RedirectStandardOutput = false,
-                    RedirectStandardInput = false,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                }
-            };
-            alsa.Start();
+                FileName = "aplay",
+                Arguments = $"-q {_files[id].Replace("\"", "\\\"")}",
+                CreateNoWindow = true
+            });
+            _alsaProc.CreateLoopThread().Start();
         }
 
         public void SetVolume(int percent)
         {
-            
         }
     }
 }

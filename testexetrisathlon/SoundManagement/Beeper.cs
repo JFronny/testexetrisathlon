@@ -6,11 +6,10 @@ namespace testexetrisathlon.SoundManagement
     {
         public static void Beep(int frequency, int duration)
         {
-#if WINDOWS
-            Console.Beep(frequency, duration);
-#else
-            Console.Write("\a");
-#endif
+            if (OSCheck.IsWindows)
+                Console.Beep(frequency, duration);
+            else
+                Console.Write("\a");
         }
     }
 }

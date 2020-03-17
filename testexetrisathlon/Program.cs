@@ -1,11 +1,8 @@
-﻿//#define WINDOWS
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using testexetrisathlon.SoundManagement;
 using static System.Console;
 
@@ -59,20 +56,6 @@ namespace testexetrisathlon
 #if DEBUG
         private static void Main()
         {
-            soundManager = new
-#if WINDOW
-                WindowsSoundManager
-#else
-                LinuxSoundManager
-#endif
-                ();
-            soundManager.Init(new Dictionary<string, string>
-            {
-                {"Intro", "testexetrisathlon.Intro.wav"},
-                {"InGame1", "testexetrisathlon.InGame1.wav"},
-                {"InGame2", "testexetrisathlon.InGame2.wav"},
-                {"GameOver", "testexetrisathlon.GameOver.wav"}
-            });
             Debug = true;
 #else
         private static void Main(string[] args)
@@ -81,11 +64,20 @@ namespace testexetrisathlon
 #endif
             BackgroundColor = ConsoleColor.Red;
             ForegroundColor = ConsoleColor.Yellow;
-#if WINDOWS
-            SetWindowSize(42, 29);
-            if (Debug)
-                SetWindowSize(50, 40);
-#endif
+            soundManager = OSCheck.IsWindows ? (ISoundManager) new WindowsSoundManager() : new LinuxSoundManager();
+            soundManager.Init(new Dictionary<string, string>
+            {
+                {"Intro", "testexetrisathlon.Intro.wav"},
+                {"InGame1", "testexetrisathlon.InGame1.wav"},
+                {"InGame2", "testexetrisathlon.InGame2.wav"},
+                {"GameOver", "testexetrisathlon.GameOver.wav"}
+            });
+            if (OSCheck.IsWindows)
+            {
+                SetWindowSize(42, 29);
+                if (Debug)
+                    SetWindowSize(50, 40);
+            }
             SetCursorPosition(0, 0);
             Clear();
             bool playing = true;
@@ -220,10 +212,11 @@ namespace testexetrisathlon
         {
             Clear();
             DrawSymbol();
-#if !WINDOWS
-            SetCursorPosition(2, 19);
-            Write("Volume is not supported in this build!");
-#endif
+            if (!OSCheck.IsWindows)
+            {
+                SetCursorPosition(2, 19);
+                Write("Volume is not supported in this build!");
+            }
             bool barActive = true;
             int currentSetting = 0;
             while (barActive)
