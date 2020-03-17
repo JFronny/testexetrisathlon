@@ -12,8 +12,8 @@ jobs:
     - name: Build
       id: base_init
       run: |
-        python3 DownloadDataDepsInstall.py
-        python3 DownloadData.py
+        python DownloadDataDepsInstall.py
+        python DownloadData.py
         $(new-object System.Net.WebClient).DownloadFile("https://www.github.com/JFronny/UpTool2/releases/latest/download/Tools.zip", "$($(pwd).Path)\Tools.zip")
         & "C:\Program Files\7-Zip\7z.exe" x .\Tools.zip
         rm Tools.zip
