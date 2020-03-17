@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using testexetrisathlon.SoundManagement;
 using static System.Console;
 
@@ -79,7 +80,6 @@ namespace testexetrisathlon
                     SetWindowSize(50, 40);
             }
             SetCursorPosition(0, 0);
-            Clear();
             bool playing = true;
             GameState state = GameState.Menu;
             try
@@ -185,6 +185,7 @@ namespace testexetrisathlon
             ForegroundColor = Colors[1];
             SetCursorPosition(0, 0);
             Clear();
+            Beeper.Dispose();
         }
 
         private static void DrawSymbol()
@@ -212,11 +213,6 @@ namespace testexetrisathlon
         {
             Clear();
             DrawSymbol();
-            if (!OSCheck.IsWindows)
-            {
-                SetCursorPosition(2, 19);
-                Write("Volume is not supported in this build!");
-            }
             bool barActive = true;
             int currentSetting = 0;
             while (barActive)
@@ -380,6 +376,7 @@ namespace testexetrisathlon
             WriteLine("Score " + _score + "/" + (Math.Pow(_level, 2) * 100));
             SetCursorPosition(25, 2);
             WriteLine("LinesCleared " + _linesCleared);
+            DrawBorder();
         }
 
         public static void DrawBorder()

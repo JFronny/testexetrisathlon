@@ -28,6 +28,7 @@
     <Content Include="tetris_yUxH6t_256px.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Bassoon" Version="1.1.1" />
     <PackageReference Include="NAudio" Version="1.10.0" />
   </ItemGroup>
 </Project>
