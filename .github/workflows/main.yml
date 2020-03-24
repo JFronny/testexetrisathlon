@@ -60,6 +60,7 @@ jobs:
         $app.appendChild($xml.CreateElement("File")).InnerText = "${{ steps.upload_release_asset.outputs.browser_download_url }}"
         $app.appendChild($xml.CreateElement("Hash")).InnerText = $(Get-FileHash .\package.zip).Hash
         $app.appendChild($xml.CreateElement("MainFile")).InnerText = $file.Name
+        $app.appendChild($xml.CreateElement("Icon")).InnerText = "https://raw.githubusercontent.com/JFronny/testexetrisathlon/master/testexetrisathlon/tetris_yUxH6t_256px.ico"
         echo NULL > app.xml
         $xml.save($(gi .\app.xml).Fullname)
     - name: Upload XML
