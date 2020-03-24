@@ -54,9 +54,9 @@ jobs:
         [System.XML.XMLElement]$app=$xml.CreateElement("app")
         $xml.appendChild($app)
         $app.appendChild($xml.CreateElement("Name")).InnerText = $asm.GetName().Name
-        $app.appendChild($xml.CreateElement("Description")).InnerText = "A simple AutoClicker`r`nFeatures:`r`n- Up to 1000 clicks per second`r`n- Right- and LeftClicks`r`n- Custom Keybinds"
+        $app.appendChild($xml.CreateElement("Description")).InnerText = "Terminal based Tetris clone"
         $app.appendChild($xml.CreateElement("Version")).InnerText = "${{ steps.base_init.outputs.vers }}"
-        $app.appendChild($xml.CreateElement("ID")).InnerText = "4863b486-5619-432e-8086-c06e1d5b1f5a"
+        $app.appendChild($xml.CreateElement("ID")).InnerText = "9214aca9-af09-441d-8329-612e77347eba"
         $app.appendChild($xml.CreateElement("File")).InnerText = "${{ steps.upload_release_asset.outputs.browser_download_url }}"
         $app.appendChild($xml.CreateElement("Hash")).InnerText = $(Get-FileHash .\package.zip).Hash
         $app.appendChild($xml.CreateElement("MainFile")).InnerText = $file.Name
