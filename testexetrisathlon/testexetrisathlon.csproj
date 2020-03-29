@@ -8,7 +8,7 @@
     <Deterministic>false</Deterministic>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent Condition="'$(OS)' == 'Windows_NT' ">
+    <PostBuildEvent Condition="'$(OS)' == 'Windows_NT'">
       if exist "$(SolutionDir)Data\pkgtool.exe" ($(SolutionDir)Data\pkgtool.exe build --noLogo --binDir .) else if exist "%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" ("%appdata%\UpTool2\Apps\0e35d154-d0d3-45e0-b080-62f521263a44\app\pkgtool.exe" build --noLogo --binDir .) else echo Cound not find Package build tools, skipping
     </PostBuildEvent>
     <PostBuildEvent Condition="'$(OS)' != 'Windows_NT'">
@@ -19,16 +19,20 @@
     <ApplicationIcon>tetris_yUxH6t_256px.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Intro.wav" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="GameOver.wav" />
-    <EmbeddedResource Include="InGame1.wav" />
-    <EmbeddedResource Include="InGame2.wav" />
+    <EmbeddedResource Include="GameOver.mp3" />
+    <EmbeddedResource Include="InGame1.mp3" />
+    <EmbeddedResource Include="InGame2.mp3" />
+    <EmbeddedResource Include="Intro.mp3" />
     <Content Include="tetris_yUxH6t_256px.ico" />
+    <Compile Remove="SoundManagement/LinuxSoundManager.cs" Condition="'$(OS)' == 'Windows_NT'" />
+    <Compile Remove="SoundManagement/WindowsSoundManager.cs" Condition="'$(OS)' != 'Windows_NT'" />
+    <Compile Remove="SoundManagement/LinuxBeeper.cs" Condition="'$(OS)' == 'Windows_NT'" />
+    <Compile Remove="SoundManagement/WindowsBeeper.cs" Condition="'$(OS)' != 'Windows_NT'" />
+    <Compile Remove="LinuxSizeSetter.cs" Condition="'$(OS)' == 'Windows_NT'" />
+    <Compile Remove="WindowsSizeSetter.cs" Condition="'$(OS)' != 'Windows_NT'" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bassoon" Version="1.1.1" />
-    <PackageReference Include="NAudio" Version="1.10.0" />
+    <PackageReference Include="Bassoon" Version="1.1.1" Condition="'$(OS)' != 'Windows_NT'" />
+    <PackageReference Include="NAudio" Version="1.10.0" Condition="'$(OS)' == 'Windows_NT'" />
   </ItemGroup>
 </Project>

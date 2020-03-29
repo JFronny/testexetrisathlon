@@ -5,28 +5,23 @@ using Bassoon;
 
 namespace testexetrisathlon.SoundManagement
 {
-    public static class Beeper
+    public class Beeper : IBeeper
     {
         private static readonly Dictionary<Tuple<int, int>, Tuple<string, Sound>> Beeps = new Dictionary<Tuple<int, int>, Tuple<string, Sound>>();
-        public static void Beep(int frequency, int duration)
+        public void Beep(int frequency, int duration)
         {
-            if (OSCheck.IsWindows)
-                Console.Beep(frequency, duration);
-            else
+            Tuple<int, int> key = new Tuple<int, int>(frequency, duration);
+            if (!Beeps.ContainsKey(key))
             {
-                Tuple<int, int> key = new Tuple<int, int>(frequency, duration);
-                if (!Beeps.ContainsKey(key))
-                {
-                    string file = Path.GetTempFileName();
-                    File.Move(file, Path.ChangeExtension(file, "wav"));
-                    file = Path.ChangeExtension(file, "wav");
-                    File.WriteAllBytes(file, BeepBeep(1000, frequency, duration));
-                    Beeps.Add(key, new Tuple<string, Sound>(file, new Sound(file)));
-                }
-                Beeps[key].Item2.Cursor = 0;
-                Beeps[key].Item2.Play();
-                Console.Clear();
+                string file = Path.GetTempFileName();
+                File.Move(file, Path.ChangeExtension(file, "wav"));
+                file = Path.ChangeExtension(file, "wav");
+                File.WriteAllBytes(file, BeepBeep(1000, frequency, duration));
+                Beeps.Add(key, new Tuple<string, Sound>(file, new Sound(file)));
             }
+            Beeps[key].Item2.Cursor = 0;
+            Beeps[key].Item2.Play();
+            Console.Clear();
         }
         
         private static byte[] BeepBeep(int amplitude, int frequency, int duration)
@@ -51,10 +46,9 @@ namespace testexetrisathlon.SoundManagement
             return ms.ToArray();
         }
 
-        public static void Dispose()
+        public void Dispose()
         {
-            if (OSCheck.IsWindows)
-                foreach (Tuple<string, Sound> file in Beeps.Values) File.Delete(file.Item1);
+            foreach (Tuple<string, Sound> file in Beeps.Values) File.Delete(file.Item1);
         }
     }
 }

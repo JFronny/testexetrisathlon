@@ -86,7 +86,7 @@ namespace testexetrisathlon
             {
                 Location.ForEach(s => Program.DroppedTetrominoeLocationGrid[s[0], s[1]] = 1);
                 Program.IsDropped = true;
-                Beeper.Beep(800, 200);
+                Program.Beeper.Beep(800, 200);
             }
             else
             {

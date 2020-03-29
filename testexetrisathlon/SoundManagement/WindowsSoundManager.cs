@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using NAudio.Wave;
 
 namespace testexetrisathlon.SoundManagement
 {
-    public sealed class WindowsSoundManager : ISoundManager
+    public sealed class SoundManager : ISoundManager
     {
         private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
         private WaveStream _current;
@@ -17,7 +18,7 @@ namespace testexetrisathlon.SoundManagement
         {
             _output = new WaveOutEvent();
             _loadedSounds = manifestResources.ToDictionary(s => s.Key,
-                s => new LoopStream(new WaveFileReader(Assembly.GetManifestResourceStream(s.Value))));
+                s => new LoopStream(new WaveFileReader(Mp3ToWav(Assembly.GetManifestResourceStream(s.Value)))));
         }
 
         public void SetCurrent(string id)
@@ -38,6 +39,16 @@ namespace testexetrisathlon.SoundManagement
         {
             foreach (LoopStream reader in _loadedSounds.Values) reader.Dispose();
             _output.Dispose();
+        }
+
+        private static MemoryStream Mp3ToWav(Stream mp3File)
+        {
+            using Mp3FileReader reader = new Mp3FileReader(mp3File);
+            using WaveStream pcmStream = WaveFormatConversionStream.CreatePcmStream(reader);
+            MemoryStream ms = new MemoryStream();
+            WaveFileWriter.WriteWavFileToStream(ms, pcmStream);
+            ms.Position = 0;
+            return ms;
         }
     }
 }

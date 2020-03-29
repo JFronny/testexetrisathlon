@@ -6,7 +6,7 @@ using Bassoon;
 
 namespace testexetrisathlon.SoundManagement
 {
-    public class LinuxSoundManager : ISoundManager
+    public class SoundManager : ISoundManager
     {
         private BassoonEngine _bassoon;
         private Dictionary<string, Sound> _loadedSounds;

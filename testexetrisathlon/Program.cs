@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using testexetrisathlon.SoundManagement;
 using static System.Console;
 
@@ -51,7 +50,8 @@ namespace testexetrisathlon
         public static bool Debug;
 
         public static readonly Random Rnd = new Random();
-        private static ISoundManager soundManager;
+        private static ISoundManager _soundManager;
+        public static IBeeper Beeper;
         private static string InGame => SettingsMan.UsingAltTrack ? "InGame2" : "InGame1";
 
 #if DEBUG
@@ -63,22 +63,20 @@ namespace testexetrisathlon
         {
             Debug = args.Contains("debug");
 #endif
+            Beeper = new Beeper();
             BackgroundColor = ConsoleColor.Red;
             ForegroundColor = ConsoleColor.Yellow;
-            soundManager = OSCheck.IsWindows ? (ISoundManager) new WindowsSoundManager() : new LinuxSoundManager();
-            soundManager.Init(new Dictionary<string, string>
+            _soundManager = new SoundManager();
+            _soundManager.Init(new Dictionary<string, string>
             {
-                {"Intro", "testexetrisathlon.Intro.wav"},
-                {"InGame1", "testexetrisathlon.InGame1.wav"},
-                {"InGame2", "testexetrisathlon.InGame2.wav"},
-                {"GameOver", "testexetrisathlon.GameOver.wav"}
+                {"Intro", "testexetrisathlon.Intro.mp3"},
+                {"InGame1", "testexetrisathlon.InGame1.mp3"},
+                {"InGame2", "testexetrisathlon.InGame2.mp3"},
+                {"GameOver", "testexetrisathlon.GameOver.mp3"}
             });
-            if (OSCheck.IsWindows)
-            {
-                SetWindowSize(42, 29);
-                if (Debug)
-                    SetWindowSize(50, 40);
-            }
+            SizeSetter.SetWindowSize(42, 29);
+            if (Debug)
+                SizeSetter.SetWindowSize(50, 40);
             SetCursorPosition(0, 0);
             bool playing = true;
             GameState state = GameState.Menu;
@@ -89,7 +87,7 @@ namespace testexetrisathlon
                     {
                         case GameState.Menu:
                             Clear();
-                            soundManager.SetCurrent(Intro);
+                            _soundManager.SetCurrent(Intro);
                             DrawSymbol();
                             SetCursorPosition(12, 18);
                             Write("HighScore: " + SettingsMan.HighScore);
@@ -124,7 +122,7 @@ namespace testexetrisathlon
                             }
                             break;
                         case GameState.Game:
-                            soundManager.SetCurrent(InGame);
+                            _soundManager.SetCurrent(InGame);
                             _dropTimer.Start();
                             SetCursorPosition(25, 0);
                             WriteLine("Level " + _level);
@@ -143,7 +141,7 @@ namespace testexetrisathlon
                             break;
                         case GameState.GameOver:
                             SettingsMan.HighScore = _score;
-                            soundManager.SetCurrent(GameOver);
+                            _soundManager.SetCurrent(GameOver);
                             string input = "";
                             while (input != "y" && input != "n")
                             {
@@ -179,7 +177,7 @@ namespace testexetrisathlon
             }
             finally
             {
-                soundManager.Dispose();
+                _soundManager.Dispose();
             }
             BackgroundColor = Colors[0];
             ForegroundColor = Colors[1];
@@ -262,7 +260,7 @@ namespace testexetrisathlon
                         }
                         break;
                 }
-                soundManager.SetVolume(SettingsMan.Volume * 10);
+                _soundManager.SetVolume(SettingsMan.Volume * 10);
             }
         }
 
