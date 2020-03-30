@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Bassoon;
@@ -29,12 +30,17 @@ namespace testexetrisathlon.SoundManagement
             foreach ((string name, string key) in manifestResources)
             {
                 string file = Path.GetTempFileName();
-                File.Move(file, Path.ChangeExtension(file, "wav"));
+                File.Move(file, Path.ChangeExtension(file, "mp3"));
+                file = Path.ChangeExtension(file, "mp3");
+                using (Stream resource = Assembly.GetManifestResourceStream(key))
+                {
+                    using FileStream fileStream = File.Create(file);
+                    resource.Seek(0, SeekOrigin.Begin);
+                    resource.CopyTo(fileStream);
+                }
+                Process.Start(new ProcessStartInfo{FileName = "ffmpeg", Arguments = $"-i {file} {Path.ChangeExtension(file, "wav")}", WorkingDirectory = Path.GetTempPath()}).WaitForExit();
+                File.Delete(file);
                 file = Path.ChangeExtension(file, "wav");
-                using Stream resource = Assembly.GetManifestResourceStream(key);
-                using FileStream fileStream = File.Create(file);
-                resource.Seek(0, SeekOrigin.Begin);
-                resource.CopyTo(fileStream);
                 _files.Add(name, file);
                 _loadedSounds.Add(name, new Sound(file));
             }

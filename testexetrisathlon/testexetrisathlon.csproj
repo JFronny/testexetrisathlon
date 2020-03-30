@@ -26,6 +26,7 @@
     <Content Include="tetris_yUxH6t_256px.ico" />
     <Compile Remove="SoundManagement/LinuxSoundManager.cs" Condition="'$(OS)' == 'Windows_NT'" />
     <Compile Remove="SoundManagement/WindowsSoundManager.cs" Condition="'$(OS)' != 'Windows_NT'" />
+    <Compile Remove="SoundManagement/LoopStream.cs" Condition="'$(OS)' != 'Windows_NT'" />
     <Compile Remove="SoundManagement/LinuxBeeper.cs" Condition="'$(OS)' == 'Windows_NT'" />
     <Compile Remove="SoundManagement/WindowsBeeper.cs" Condition="'$(OS)' != 'Windows_NT'" />
     <Compile Remove="LinuxSizeSetter.cs" Condition="'$(OS)' == 'Windows_NT'" />
