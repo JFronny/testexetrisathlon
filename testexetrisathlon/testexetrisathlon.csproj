@@ -33,7 +33,7 @@
     <Compile Remove="WindowsSizeSetter.cs" Condition="'$(OS)' != 'Windows_NT'" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bassoon" Version="1.1.1" Condition="'$(OS)' != 'Windows_NT'" />
+    <PackageReference Include="Bassoon" Version="1.1.2" Condition="'$(OS)' != 'Windows_NT'" />
     <PackageReference Include="NAudio" Version="1.10.0" Condition="'$(OS)' == 'Windows_NT'" />
   </ItemGroup>
 </Project>
