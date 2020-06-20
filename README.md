@@ -3,3 +3,5 @@
 To download the files required for building, just run `DownloadData.py`
 
 If you don't have youtube-dl installed (or it is outdated), run `DownloadDataDepsInstall.py`
+# IMPORTANT
+Now hosted on [GitLab](https://gitlab.com/JFronny/testexetrisathlon)
